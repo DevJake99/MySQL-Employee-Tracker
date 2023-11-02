@@ -1,11 +1,16 @@
 const inquirer = require('inquirer');
 const dbConnect = require('./dbConnection');
-const query = require('./querys');
+const Query = require('./querys');
+//const Sequelize = require('sequelize');
+//require('dotenv').config();
+
+// Prompts will be created in separate lists in order to provide 
+// different menus for responses that require more complex input (such as creating new roles or employees)
 
 // Prompts for main tasks
 let tasks = [
     {
-        type: 'List',
+        type: 'list',
         name: 'task',
         message: 'What would you like to do?',
         choices:
@@ -69,8 +74,8 @@ const addEmployeeList = [
         message: 'Which manager will they report to?'
     },
 ];
-// Prompt to update am employee rolle
-updateEmployeeList = [
+// Prompt to update an employee role
+const updateEmployeeList = [
     {
         type: 'input',
         mame: 'updateEmployeeRole',
@@ -84,32 +89,33 @@ const roleList = [];
 const employeeList = [];
 
 
-async function init() {
-    // Establish connection connection to database
-    await dbConnect();
 
+function init() {
     // Prompt questions
     inquirer.prompt(tasks).then((answers) => {
         if (answers === 'View All Departments') {
-            query.viewAllDepartments();
+            return dbConnect.query(Query.viewAllDepartments(), (err, results) => {
+                if (err) {
+                    throw err;
+                }
+                console.table(results);
+            });
         }
-        if (answers === 'View All Roles') {
-            query.viewAllRoles();
+        else if (answers === 'View All Roles') {
+            dbConnect.query(Query.viewAllRoles());
         }
-        if (answers === 'View All Employees') {
-            query.viewAllEmployees();
+        else if (answers === 'View All Employees') {
+            dbConnect.query(Query.viewAllEmployees());
         }
-        if (answers === 'Add Department') {
-
-            let response = addDepList.addDepartment;
-            inquirer.promt(response).then((answers) => {
+        else if (answers === 'Add Department') {
+            inquirer.promt(addDepList).then((answers) => {
                 depName = answers.addDepartment;
-                query.addDepartment(depName);
                 departmentList.push(depName);
+                dbConnect.query(Query.addDept(depName));
             })
 
         }
-        if (answers === 'Add Role') {
+        else if (answers === 'Add Role') {
             inquirer.promt(addRoleList).then((answers) => {
                 var roleTitle = answers.roleTitle;
                 var roleSalary = answers.addSalary;
@@ -124,29 +130,41 @@ async function init() {
                     }];
                     inquirer.prompt(noDept).then((answers) => {
                         if (answers.addDept == true) {
-                            addDepList.push(roleDept);
+                            newDep = answers.addDept
+                            departmentList.push(newDep);
+                            roleList.push(roleTitle);
+                            dbConnect.query(Query.addRole(roleTitle, roleSalary, roleDept));
                         } else {
-                            return
+                            let tryAgain = [{
+                                name: 'addDeptTwo',
+                                type: 'input',
+                                message: 'Enter an Existing Department'
+                            }];
+                            inquirer.prompt(tryAgain).then((answers) => {
+                                roleDept = answers.addDeptTwo;
+
+                            })
+
                         }
                     })
                 }
-                roleList.push(roleTitle);
-                query.addRole(roleTitle, roleSalary, roleDept);
 
             })
         }
-        if (answers === 'Add an Employee') {
+        /*if (answers === 'Add an Employee') {
             inquirer.promt(addEmployeeList).then((answers) => {
                 var first_name = answers.first_name;
                 var last_name = answers.last_name;
                 query.addEmployee()
-
+ 
             })
-
+ 
         }
         if (answers === 'Update Employee Role') {
-
-        }
+ 
+        }*/
     })
 };
+
+init();
 

@@ -1,40 +1,58 @@
-
+const dbConnect = require('./dbConnection');
 class Query {
     constructor(connection) {
         this.connection = connection;
 
     }
     viewAllDepartments() {
-        return this.connection.promise().query("SELECT * FROM departments");
+        return dbConnect.query("SELECT * FROM departments");
     }
     ViewAllRoles() {
-        return this.connection.promise().query('SELECT * FROM roles');
+        return dbConnect.query('SELECT * FROM roles');
     }
     viewAllEmployees() {
-        return this.connection.promise().query('SELECT * FROM employees');
+        return dbConnect.query('SELECT * FROM employees');
     }
     addRole(roleTitle, roleSalary, roleDept) {
         let job_title = roleTitle;
         let salary = roleSalary;
-        let Dept = roleDept;
+        let Dept = roleDept; // add query for joining dept into role table
         function roleDept() {
-            let roleQuery = `INSERT INTO roles (${job_title}, ${salary}) VALUES (?, ?)`;
-            return this.connection.promise.query(roleQuery)
+            let roleQuery = `INSERT INTO roles (job_title, salary) VALUEs ('${job_title}', '${salary}')`;
+            return dbConnect.query(roleQuery,)
         }
-        function Dept() {
-            let deptQuery = `INSERT INTO departments (${Dep}) VALUES (?)`;
-            return this.connection.promise().query(deptQuery)
+        function Deptfunc(depName) {
+            const query = `INSERT INTO departments (department) VALUE ('${depName}')`
+            return dbConnect.query(query)
+        }
+        function joinRoleDept() { // function to link dept id to role
+
         }
         roleDept();
-        Dept();
-        }
-    addEmployee(first_name, last_name, role, manager){
-        const query = 'INSERT INTO employees SET ?';
-        return this.connection.promise().query( )
+        Deptfunc();
     }
-    updateEmployee(){
+    addDept(deptName) {
+        const query = `INSERT INTO departments (department) VALUE ('${deptName}')`
+        return dbConnect.query(query)
+    }
+    async addEmployee(firstName, lastName, manager, role) {
+        const query = `
+        INSERT INTO employees 
+        first_name, 
+        last_name, 
+        manager_first_name 
+        VALUES (
+            '${firstName}',
+            '${lastName}',
+            '${manager}'
+            )`; //add role when you learn more about the joins
+        const [newEmployee, _] = await dbConnect.execute(query)
+        return newEmployee
+        //dbConnect.query(query)
+    }
+    updateEmployee() {
 
-        return this.connection.promise().query( )
+        return this.connection.promise().query()
     }
 }
 
