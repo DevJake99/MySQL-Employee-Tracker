@@ -23,7 +23,7 @@ let tasks = [
     },
 ];
 
-let taskTwo = [
+let tasksTwo = [
     {
         type: 'list',
         name: 'task',
@@ -133,13 +133,8 @@ function AddADepartment() {
             //console.log(department);
             let name = department.addDepartment
             query.addDept(name)
-                .then((deptName) => {
-                    console.log(`The ${deptName.addDepartment} department was successfully added!`);
-                    promptAgain()
-                })
-        })
-        .catch((err) => {
-            console.error(err)
+            console.log(`The ${name} department was successfully added!`);
+            promptAgain()
         })
 }
 
@@ -185,13 +180,8 @@ function AddARole() {
                 }
             ]).then((role) => {
                 query.addRole(role.addRole, role.addSalary, role.department)
-                    .then((role) => {
-                        console.log(`The role: ${role.addRole} was sucessfully added!`);
-                        promptAgain();
-                    })
-                    .catch((err) => {
-                        console.error(err)
-                    })
+                console.log(`The role: ${role.addRole} was sucessfully added!`);
+                promptAgain();
             })
         })
 }
@@ -230,11 +220,11 @@ function AddAEmployee() {
         ])
             .then((employee) => {
                 //console.log(employee);
-                let depId = 'placeHolder';
+                //let depId = 'placeHolder';
                 for (i = 0; i < roles.length; i++) {
                     if (roles[i].value === employee.employeeRole) {
                         depId = roles[i].dep;
-                    } else { console.log(depId) }
+                    }
                 }
                 query.addEmployee(
                     employee.employeeFirst,
