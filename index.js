@@ -23,6 +23,20 @@ let tasks = [
     },
 ];
 
+let taskTwo = [
+    {
+        type: 'list',
+        name: 'task',
+        message: 'What else would you like to do?',
+        choices:
+            [
+                'View All Departments', 'View All Roles',
+                'View All Employees', 'Add A Department',
+                'Add Role', 'Add an Employee', 'Update Employee Role', 'Exit'
+            ]
+    },
+];
+
 // Promts for adding a new Department 
 const addDepList = [
     {
@@ -105,7 +119,7 @@ function init() {
 function viewDepartment() {
     query.viewAllDepartments().then(([rows]) => {
         console.table(rows)
-        init()
+        promptAgain()
     })
 }
 
@@ -116,12 +130,12 @@ function AddADepartment() {
         message: 'Enter department name'
     })
         .then((department) => {
-            console.log(department);
+            //console.log(department);
             let name = department.addDepartment
             query.addDept(name)
                 .then((deptName) => {
                     console.log(`The ${deptName.addDepartment} department was successfully added!`);
-                    init()
+                    promptAgain()
                 })
         })
         .catch((err) => {
@@ -132,7 +146,14 @@ function AddADepartment() {
 function viewRoles() {
     query.viewAllRoles().then(([rows]) => {
         console.table(rows);
-        init();
+        promptAgain();
+    })
+}
+
+function viewEmployees() {
+    query.viewAllEmployees().then(([employees]) => {
+        console.table(employees);
+        promptAgain();
     })
 }
 
@@ -166,7 +187,7 @@ function AddARole() {
                 query.addRole(role.addRole, role.addSalary, role.department)
                     .then((role) => {
                         console.log(`The role: ${role.addRole} was sucessfully added!`);
-                        init();
+                        promptAgain();
                     })
                     .catch((err) => {
                         console.error(err)
@@ -179,11 +200,11 @@ function AddAEmployee() {
     query.viewAllRoles().then(([rows]) => {
         let roles = rows.map((role) => ({
             name: role.job_title,
-            value: role.id,
+            value: role,
             dep: role.department_id
         }))
-        console.log('roles: ', roles);
-        console.log('rows: ', rows)
+        //console.log('roles: ', roles);
+        //console.log('rows: ', rows)
         inquirer.prompt([
             {
                 type: 'input',
@@ -208,7 +229,7 @@ function AddAEmployee() {
             }
         ])
             .then((employee) => {
-                console.log(employee);
+                //console.log(employee);
                 let depId = 'placeHolder';
                 for (i = 0; i < roles.length; i++) {
                     if (roles[i].value === employee.employeeRole) {
@@ -219,24 +240,101 @@ function AddAEmployee() {
                     employee.employeeFirst,
                     employee.employeeLast,
                     employee.employeeManager,
-                    employee.employeeRole,
+                    employee.employeeRole.id,
                     depId)
-                    .then((employee) => {
-                        console.log(`Employee: ${employee.employeeFirst} has been successfully created`);
-                        init()
-                    })
-                    .catch((err) => {
-                        console.log(err);
-                    })
-
+                console.log(`Employee: ${employee.employeeFirst} ${employee.employeeLast} has been successfully created`);
+                promptAgain()
             })
     })
 
 }
 
+function updateAEmployee() {
+    query.viewAllEmployees().then(([data]) => {
+        let employees = data.map((employee) => ({
+            name: `${employee.first_name} ${employee.last_name}`,
+            value: employee
+        }));
+        console.log(employees);
+        inquirer.prompt([
+            {
+                type: 'list',
+                name: 'employee',
+                message: 'Choose employee to update',
+                choices: employees
+            }]).then((answer) => {
+                //console.log('answer: ', answer.employee)
+                let employeeToChange = answer.employee.id;
+                let employeeName = `${answer.employee.first_name} ${answer.employee.last_name}`;
+
+                query.viewAllRoles().then(([rows]) => {
+                    let roles = rows.map((role) => ({
+                        name: role.job_title,
+                        value: role
+                    }))
+                    inquirer.prompt([
+                        {
+                            type: 'list',
+                            name: 'newRole',
+                            message: "What is the new Role?",
+                            choices: roles
+                        }]).then((choice) => {
+                            //console.log('role choice: ', choice)
+                            let roleChoice = choice.newRole.id;
+                            query.updateEmployee(roleChoice, employeeToChange);
+                            console.log(`Employee: ${employeeName} Successfully updated to: ${choice.newRole.job_title}`);
+                            promptAgain()
+
+                        })
+                })
+
+            })
+
+    })
+
+
+
+
+}
+
+
 function exit() {
     console.log("Goodbye!");
     process.exit()
 }
+
+
+function promptAgain() {
+    // Prompt questions
+    inquirer.prompt(tasksTwo).then((answers) => {
+        switch (answers.task) {
+            case "View All Departments":
+                viewDepartment();
+                break;
+            case "View All Roles":
+                viewRoles();
+                break;
+            case 'View All Employees':
+                viewEmployees();
+                break;
+            case 'Add A Department':
+                AddADepartment();
+                break;
+            case 'Add Role':
+                AddARole();
+                break;
+            case 'Add an Employee':
+                AddAEmployee();
+                break;
+            case 'Update Employee Role':
+                updateAEmployee();
+                break;
+            default:
+                exit()
+                break;
+        }
+    })
+};
+
 init();
 

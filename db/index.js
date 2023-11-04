@@ -35,10 +35,11 @@ class Query {
         return this.connection.promise().query(query)
         //dbConnect.query(query)
     }
-    updateEmployee() {
-
-        return this.connection.promise().query()
+    updateEmployee(newRoleId, employee) {
+        let query = `UPDATE employees SET role_id = ${newRoleId} WHERE id = ${employee}`
+        return this.connection.promise().query(query)
     }
 }
 
 module.exports = new Query(connection)
+
